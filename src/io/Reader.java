@@ -1,12 +1,9 @@
 package io;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.zip.GZIPInputStream;
 
 import fields.ArrayField;
 import fields.BooleanField;
@@ -20,7 +17,6 @@ import fields.FloatField;
 import fields.IntField;
 import fields.LongField;
 import fields.ShortField;
-import ui.Settings;
 
 /**
  * The main reader class for the Minecraft Classic file. It works to deserialize 
@@ -57,181 +53,46 @@ public class Reader {
 	 * documentation at:
 	 * https://docs.oracle.com/javase/6/docs/platform/serialization/spec/protocol.html
 	 */
-	public final static short STREAM_MAGIC = (short)0xaced;
-	public final static short STREAM_VERSION = 5;
-	public final static byte TC_NULL = (byte)0x70;
-	public final static byte TC_REFERENCE = (byte)0x71;
-	public final static byte TC_CLASSDESC = (byte)0x72;
-	public final static byte TC_OBJECT = (byte)0x73;
-	public final static byte TC_STRING = (byte)0x74;
-	public final static byte TC_ARRAY = (byte)0x75;
-	public final static byte TC_CLASS = (byte)0x76;
-	public final static byte TC_BLOCKDATA = (byte)0x77;
-	public final static byte TC_ENDBLOCKDATA = (byte)0x78;
-	public final static byte TC_RESET = (byte)0x79;
-	public final static byte TC_BLOCKDATALONG = (byte)0x7A;
-	public final static byte TC_EXCEPTION = (byte)0x7B;
-	public final static byte TC_LONGSTRING = (byte) 0x7C;
-	public final static byte TC_PROXYCLASSDESC = (byte) 0x7D;
-	public final static byte TC_ENUM = (byte) 0x7E;
-	public final static int  baseWireHandle = 0x7E0000;
-	
-	public final static byte SC_WRITE_METHOD = 0x01; //if SC_SERIALIZABLE
-	public final static byte SC_BLOCK_DATA = 0x08;    //if SC_EXTERNALIZABLE
-	public final static byte SC_SERIALIZABLE = 0x02;
-	public final static byte SC_EXTERNALIZABLE = 0x04;
-	public final static byte SC_ENUM = 0x10;
+	final static short STREAM_MAGIC = (short)0xaced;
+    final static short STREAM_VERSION = 5;
+
+    final static byte TC_NULL = 0x70;
+    final static byte TC_REFERENCE = 0x71;
+    final static byte TC_CLASSDESC = 0x72;
+    final static byte TC_OBJECT = 0x73;
+    final static byte TC_STRING = 0x74;
+    final static byte TC_ARRAY = 0x75;
+    final static byte TC_CLASS = 0x76;
+    final static byte TC_BLOCKDATA = 0x77;
+    final static byte TC_ENDBLOCKDATA = 0x78;
+    final static byte TC_RESET = 0x79;
+    final static byte TC_BLOCKDATALONG = 0x7A;
+    final static byte TC_EXCEPTION = 0x7B;
+    final static byte TC_LONGSTRING = 0x7C;
+    final static byte TC_PROXYCLASSDESC = 0x7D;
+    final static byte TC_ENUM = 0x7E;
+
+    final static int baseWireHandle = 0x7E0000;
+
+    final static byte SC_WRITE_METHOD = 0x01; //if SC_SERIALIZABLE
+    final static byte SC_BLOCK_DATA = 0x08; //if SC_EXTERNALIZABLE
+    final static byte SC_SERIALIZABLE = 0x02;
+    final static byte SC_EXTERNALIZABLE = 0x04;
+    final static byte SC_ENUM = 0x10;
 	
 	/**
 	 * Reads the file at the given path then returns the Class that was
 	 * serialized.
 	 * 
-	 * @throws IOException if file cannot be opened
 	 * @throws IllegalArgumentException if file is not a classic file or 
 	 * contains an error
 	 */
-	public static Class read(File readFile) throws IOException {
-		//Initialize data input stream (Minecraft file gzipped)
-		FileInputStream  input = new FileInputStream(readFile);
-		GZIPInputStream gzis = new GZIPInputStream(input);
-		din = new DataInputStream(gzis);
-		
-		//Initialize handles array (clear from previous run)
-		handles = new ArrayList<Class>();
-		
-		//Remove magic numbers before classic file
-		int classicMagicNumber = din.readInt();
-		if(classicMagicNumber != 0x271BB788) {
-			return readPreClassicOrEarlyClassic(classicMagicNumber);
-		}
-		byte magicByte = din.readByte();
-		if(magicByte == 0x01) {
-			return readClassicThirteen();
-		} else if(magicByte == 0x02) {
-			//Read serialized class
-			Class readClass = readStream();
-			
-			//Ensure no more bytes remain
-			if(din.read() != -1) {
-				throw new IllegalArgumentException("Excess bytes inside file");
-			}
-			
-			//Close the streams to prevent resource leak
-			input.close();
-			gzis.close();
-			din.close();
-			
-			return readClass;
-		} else {
-			throw new IllegalArgumentException("Magic version byte missing from file");
-		}
-	}
+	
+	private static Class read(byte[] stream) throws IOException {
 
-	/**
-	 * Special case to read a file from rd-132211 to Classic 12a_03 
-	 * which was only an array of blocks (256x256x64).
-	 * @param readInt the first int that was read when no magic
-	 * number was found
-	 * @return an artificially constructed class with just the 
-	 * list of blocks in the file
-	 */
-	private static Class readPreClassicOrEarlyClassic(int readInt) throws IOException {
-		Class ret = new Class("Level");
-		ArrayField blocks = new ArrayField("blocks", "[B");
-		ret.addField(blocks);
-		
-		if(!Settings.skipBlocks) {
-			int i = 0;//Current byte #
-			
-			//Convert the readInt back to bytes 
-			byte[] intBytes = ByteBuffer.allocate(4).putInt(readInt).array();
-			for(byte b : intBytes) {
-				ByteField bField = new ByteField("blocks[" + i + "]");
-				bField.setField(b);
-				blocks.addField(bField);
-				i++;
-			}
-			
-			for(; i < 256 * 256 * 64; i++) {
-				ByteField bField = new ByteField("blocks[" + i + "]");
-				bField.read();
-				blocks.addField(bField);
-			}
-			
-			//Ensure no more bytes remain
-			if(din.read() != -1) {
-				throw new IllegalArgumentException("Not a valid classic file.");
-			}
-		}
-		
-		return ret;
-	}
-	
-	/**
-	 * Special case to read a file from Classic 13a-dev (labeled 12a) or 
-	 * Classic 13a, which followed this format:
-	 *    Data           Number of Bytes   Descriptions
-     * 1. Magic Number   4                 A number used to identify the file. Always will be 27 1B B7 88. (Should have already been read)
-     * 2. World Name     14                First two bytes will be a short for the length of the string then that length bytes will be ASCII characters for the string. This string will always be "A Nice World".
-     * 3. Creator Player Variable          First two bytes will be a short for the length of the string then that length bytes will be ASCII characters for the string. In Classic 0.0.13a-dev this will always be "noname" but Classic 0.0.13a_03 will be the actual user's name.
-     * 4. Time Created   8                 A long value for the time the level was created in a Unix epoch.
-     * 5. Width          2                 The width of the world.
-     * 6. Height         2                 The height of the world.
-     * 7. Depth          2                 The depth of the world.
-     * 8. Block Array    4194304 (2^22)    An array of blocks in the world. Each byte represents a single block for their ID.
-     * @param readByte the magic number that was already read
-     * @return an artificially constructed class with just the 
-	 * list of blocks in the file
-	 */
-	private static Class readClassicThirteen() throws IOException {
-		Class ret = new Class("Level");
-		
-		ClassField worldName = new ClassField("name", ClassField.STRING);
-		worldName.setString(din.readUTF());
-		ret.addField(worldName);
-		
-		ClassField creatorName = new ClassField("creator", ClassField.STRING);
-		creatorName.setString(din.readUTF());
-		ret.addField(creatorName);
-		
-		LongField createTime = new LongField("createTime");
-		createTime.read();
-		ret.addField(createTime);
-		
-		ShortField width = new ShortField("width");
-		ShortField height = new ShortField("height");
-		ShortField depth = new ShortField("depth");
-		width.read();
-		height.read();
-		depth.read();
-		ret.addField(width);
-		ret.addField(height);
-		ret.addField(depth);
-		
-		ArrayField blocks = new ArrayField("blocks", "[B");
-		ret.addField(blocks);
-		if(!Settings.skipBlocks) {
-			int blockAmount = (Short) width.getField() * (Short) height.getField() * (Short) depth.getField();
-			for(int i = 0; i < blockAmount; i++) {
-				ByteField bField = new ByteField("blocks[" + i + "]");
-				bField.read();
-				blocks.addField(bField);
-			}
-			
-			//Ensure no more bytes remain
-			if(din.read() != -1) {
-				throw new IllegalArgumentException("Excess bytes inside file");
-			}
-		}
-		
-		return ret;
-	}
-	
-	/**
-	 * Reads the stream variable from grammar and returns the class in
-	 * the contents part.
-	 */
-	private static Class readStream() throws IOException {
+		ByteArrayInputStream bin = new ByteArrayInputStream(stream);
+        din = new DataInputStream(bin);
+
 		//Ensure first two bytes are magic number 0xACED
 		int magic = din.readShort();
 		if(magic != STREAM_MAGIC) {
