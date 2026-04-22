@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import io.Reader;
-import ui.Settings;
 
 public class ArrayField extends Field {
 	String arrayDescriptor;
@@ -79,16 +78,13 @@ public class ArrayField extends Field {
 			throw new IllegalArgumentException("Invalid array descriptor. Was: " + type);
 		}
 		
-		if(!(fieldName.equals("blocks") && Settings.skipBlocks)) {
-			for(int i = 0; i < count; i++) {
-				Field currentF = f.clone();
-				currentF.setFieldName(currentF.getFieldName() + "[" + i + "]");
-				currentF.read();
-				arrayContents.add(currentF);
-			}
-		} else {
-			Reader.din.skip(count);
+		for(int i = 0; i < count; i++) {
+			Field currentF = f.clone();
+			currentF.setFieldName(currentF.getFieldName() + "[" + i + "]");
+			currentF.read();
+			arrayContents.add(currentF);
 		}
+
 	}
 
 	@Override
