@@ -83,7 +83,7 @@ public class Reader {
 	 * contains an error
 	 */
 	
-	private static Class read(byte[] stream) throws IOException {
+	private static void read(byte[] stream) throws IOException {
 
 		ByteArrayInputStream bin = new ByteArrayInputStream(stream);
         din = new DataInputStream(bin);
@@ -102,7 +102,17 @@ public class Reader {
 		
 		//Read the main class
 		Class readClass = readContent();
-		return readClass;
+
+		//Ensure no more bytes remain
+		if(din.read() != -1) {
+			throw new IllegalArgumentException("Excess bytes inside file");
+		}
+		
+		//Close the streams to prevent resource leak
+		din.close();
+		
+		System.out.println("This is a test message, assuming everything worked correctly...");
+		//return readClass;
 	}
 	
 	/**
