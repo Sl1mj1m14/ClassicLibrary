@@ -3,6 +3,7 @@ package fields;
 import java.io.IOException;
 
 import io.Reader;
+import io.Writer;
 
 /** Field for a boolean primitive */
 public class BooleanField extends Field {
@@ -19,7 +20,12 @@ public class BooleanField extends Field {
 	
 	@Override
 	public void read() throws IOException {
-		fieldValue = Reader.din.readBoolean();
+		fieldValue = Reader.dis.readBoolean();
+	}
+
+	@Override
+	public void write() throws IOException {
+		Writer.dos.writeBoolean(fieldValue);
 	}
 	
 	@Override

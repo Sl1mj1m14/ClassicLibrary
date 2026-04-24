@@ -3,6 +3,7 @@ package fields;
 import java.io.IOException;
 
 import io.Reader;
+import io.Writer;
 
 /** Field for a byte primitive */
 public class ByteField extends Field {
@@ -23,7 +24,12 @@ public class ByteField extends Field {
 	
 	@Override
 	public void read() throws IOException {
-		fieldValue = Reader.din.readByte();
+		fieldValue = Reader.dis.readByte();
+	}
+
+	@Override
+	public void write() throws IOException {
+		Writer.dos.writeByte(fieldValue);
 	}
 	
 	@Override

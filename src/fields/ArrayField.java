@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import io.Grammar;
 import io.Reader;
+import io.Writer;
 
 public class ArrayField extends Field {
 	String arrayDescriptor;
@@ -32,10 +33,10 @@ public class ArrayField extends Field {
 	@Override
 	public void read() throws IOException {
 		//Read the newArray from the grammar
-		int tcArray = Reader.din.readUnsignedByte();
+		int tcArray = Reader.dis.readUnsignedByte();
 		if(tcArray != Grammar.TC_ARRAY) {
 			for(int i = 0; i < 10; i++) {
-				System.out.println(Reader.din.readUnsignedByte() + ",");
+				System.out.println(Reader.dis.readUnsignedByte() + ",");
 			}
 			throw new IllegalArgumentException("Invalid starter of array. Was: " + tcArray);
 		}
@@ -50,7 +51,7 @@ public class ArrayField extends Field {
 		char type = arrayDescriptor.charAt(1);
 		
 		//Get the array size
-		int count = Reader.din.readInt();
+		int count = Reader.dis.readInt();
 		
 		//Stores the type of field that must be read
 		Field f;
@@ -86,6 +87,11 @@ public class ArrayField extends Field {
 			arrayContents.add(currentF);
 		}
 
+	}
+	
+	@Override
+	public void write() throws IOException {
+		throw new UnsupportedOperationException("Not implemented yet!"); //TODO
 	}
 
 	@Override

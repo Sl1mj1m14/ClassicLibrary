@@ -45,6 +45,21 @@ public class Class {
 		}
 	}
 
+	/**
+	 * Write the data in the class' fields and its super class
+	 */
+	public void write() throws IOException {
+		//Write super class values first
+		if(superClass != null) {
+			superClass.write();
+		}
+
+		//Write each field
+		for(Field f : fields) {
+			f.write();
+		}
+	}
+
 	public String getName() {
 		return name;
 	}

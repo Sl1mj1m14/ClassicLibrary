@@ -3,6 +3,7 @@ package fields;
 import java.io.IOException;
 
 import io.Reader;
+import io.Writer;
 
 /** Field for a char primitive */
 public class CharField extends Field {
@@ -19,7 +20,12 @@ public class CharField extends Field {
 	
 	@Override
 	public void read() throws IOException {
-		fieldValue = Reader.din.readChar();
+		fieldValue = Reader.dis.readChar();
+	}
+
+	@Override
+	public void write() throws IOException {
+		Writer.dos.writeChar(fieldValue);
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package fields;
 import java.io.IOException;
 
 import io.Reader;
+import io.Writer;
 
 /** Field for a short primitive */
 public class ShortField extends Field {
@@ -19,7 +20,12 @@ public class ShortField extends Field {
 	
 	@Override
 	public void read() throws IOException {
-		fieldValue = Reader.din.readShort();
+		fieldValue = Reader.dis.readShort();
+	}
+
+	@Override
+	public void write() throws IOException {
+		Writer.dos.writeShort(fieldValue);
 	}
 
 	@Override

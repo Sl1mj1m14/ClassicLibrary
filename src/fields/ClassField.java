@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import io.Grammar;
 import io.Reader;
+import io.Writer;
 
 public class ClassField extends Field {
 	private String className;
@@ -77,15 +78,15 @@ public class ClassField extends Field {
 			if(classField == null)
 				return;
 			
-			int blockData = Reader.din.readUnsignedByte();
+			int blockData = Reader.dis.readUnsignedByte();
 			if(blockData != Grammar.TC_BLOCKDATA) {
 				for(int i = 0; i < 5; i++) {
-					System.out.println("nextbyte: " + Reader.din.readUnsignedByte());
+					System.out.println("nextbyte: " + Reader.dis.readUnsignedByte());
 				}
 				throw new IllegalArgumentException("Block data begins incorrectly. Starts with: " + blockData);
 			}
 			
-			int externalizable = Reader.din.readUnsignedByte();
+			int externalizable = Reader.dis.readUnsignedByte();
 			if(externalizable != Grammar.SC_EXTERNALIZABLE) {
 				throw new IllegalArgumentException("List is not externalizable.");
 			}
@@ -94,7 +95,7 @@ public class ClassField extends Field {
 			int size = (Integer) classField.getFields().get(0).getField();
 			
 			//Read in unneeded int in ArrayList
-			Reader.din.readInt();
+			Reader.dis.readInt();
 			
 			//Read each class
 			for(int i = 0; i < size; i++) {
@@ -102,7 +103,7 @@ public class ClassField extends Field {
 				l.add(readClass);
 			}
 			
-			int endBlockData = Reader.din.readUnsignedByte();
+			int endBlockData = Reader.dis.readUnsignedByte();
 			if(endBlockData != Grammar.TC_ENDBLOCKDATA) {
 				throw new IllegalArgumentException("Block data not properly ending. Final byte was: " + endBlockData);
 			}
@@ -110,13 +111,18 @@ public class ClassField extends Field {
 			//Special case to read random
 			classField = Reader.readContent();
 			
-			int endBlockData = Reader.din.readUnsignedByte();
+			int endBlockData = Reader.dis.readUnsignedByte();
 			if(endBlockData != Grammar.TC_ENDBLOCKDATA) {
 				throw new IllegalArgumentException("Block data not properly ending");
 			}
 		} else {
 			classField = Reader.readContent();
 		}
+	}
+	
+	@Override
+	public void write() throws IOException {
+		throw new UnsupportedOperationException("Not implemented yet!"); //TODO
 	}
 	
 	@Override

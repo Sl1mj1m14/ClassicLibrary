@@ -31,10 +31,14 @@ public abstract class Field {
 	/** Get the object stored in the field. */
 	public abstract Object getField();
 	
-	/** Use Reader's DataInputStream (din) to read 
+	/** Use Reader's DataInputStream (dis) to read 
 	 * the value into the field. */
 	public abstract void read() throws IOException;
 	
+	/** Use Writer's DataOutputStream (dos) to write
+	 * the value of the field. */
+	public abstract void write() throws IOException;
+
 	/** Create a clone of the field with the same name. */
 	public abstract Field clone();
 }

@@ -3,6 +3,7 @@ package fields;
 import java.io.IOException;
 
 import io.Reader;
+import io.Writer;
 
 /** Field for a long primitive */
 public class LongField extends Field {
@@ -19,7 +20,12 @@ public class LongField extends Field {
 
 	@Override
 	public void read() throws IOException {
-		fieldValue = Reader.din.readLong();
+		fieldValue = Reader.dis.readLong();
+	}
+
+	@Override
+	public void write() throws IOException {
+		Writer.dos.writeLong(fieldValue);
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package fields;
 import java.io.IOException;
 
 import io.Reader;
+import io.Writer;
 
 /** Field for a float primitive */
 public class FloatField extends Field {
@@ -19,7 +20,12 @@ public class FloatField extends Field {
 	
 	@Override
 	public void read() throws IOException {
-		fieldValue = Reader.din.readFloat();
+		fieldValue = Reader.dis.readFloat();
+	}
+
+	@Override
+	public void write() throws IOException {
+		Writer.dos.writeFloat(fieldValue);
 	}
 	
 	@Override

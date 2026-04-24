@@ -34,7 +34,7 @@ import fields.ShortField;
  */
 public class Reader {
 	/** The data input stream from the chosen file. */
-	public static DataInputStream din;
+	public static DataInputStream dis;
 	
 	/** List of all classes that are saved with (newHandle) in
 	 * the grammar. They can be referenced later and read by
@@ -54,16 +54,16 @@ public class Reader {
 	private static void read(byte[] stream) throws IOException {
 
 		ByteArrayInputStream bin = new ByteArrayInputStream(stream);
-        din = new DataInputStream(bin);
+        dis = new DataInputStream(bin);
 
 		//Ensure first two bytes are magic number 0xACED
-		int magic = din.readShort();
+		int magic = dis.readShort();
 		if(magic != Grammar.STREAM_MAGIC) {
 			throw new IllegalArgumentException("Invalid starting magic bytes");
 		}
 		
 		//Check version number is 5
-		int version = din.readUnsignedShort();
+		int version = dis.readUnsignedShort();
 		if(version != Grammar.STREAM_VERSION) {
 			throw new IllegalArgumentException("Invalid version number");
 		}
@@ -72,12 +72,12 @@ public class Reader {
 		Class readClass = readContent();
 
 		//Ensure no more bytes remain
-		if(din.read() != -1) {
+		if(dis.read() != -1) {
 			throw new IllegalArgumentException("Excess bytes inside file");
 		}
 		
 		//Close the streams to prevent resource leak
-		din.close();
+		dis.close();
 		
 		System.out.println("This is a test message, assuming everything worked correctly...");
 		//return readClass;
@@ -100,7 +100,7 @@ public class Reader {
 	 */
 	public static Class readObject() throws IOException {
 		//Content determiner dictates what type of content it is
-		int cDeterminer = din.readUnsignedByte();
+		int cDeterminer = dis.readUnsignedByte();
 		
 		if(cDeterminer == Grammar.TC_OBJECT) {
 			return readNewObject();
@@ -137,7 +137,7 @@ public class Reader {
 	 * of the referenced class in the handles list.
 	 */
 	private static Class readPrevObject() throws IOException {
-		int reference = din.readInt();
+		int reference = dis.readInt();
 		Class prototype = handles.get(reference - Grammar.baseWireHandle);
 		return prototype.clone();
 	}
@@ -148,7 +148,7 @@ public class Reader {
 	 */
 	private static Class readNewString() throws IOException {
 		//Set class name to the string
-		Class returnClass = new Class(din.readUTF());
+		Class returnClass = new Class(dis.readUTF());
 		
 		//newHandle
 		handles.add(returnClass);
@@ -163,7 +163,7 @@ public class Reader {
 	public static Class readClassDesc() throws IOException {
 		//Object determiner dictates whether the object is a 
 		//newClassDescription or reference
-		int oDeterminer = din.readUnsignedByte();
+		int oDeterminer = dis.readUnsignedByte();
 		
 		if(oDeterminer == Grammar.TC_CLASSDESC) {
 			return readNewClassDesc();
@@ -185,11 +185,11 @@ public class Reader {
 		Class returnClass;
 		
 		//Read class name
-		String className = din.readUTF();
+		String className = dis.readUTF();
 		returnClass = new Class(className);
 		
 		//Read serialVersionUID
-		long serialVersionUID = din.readLong();
+		long serialVersionUID = dis.readLong();
 		returnClass.setSerialVersionUID(serialVersionUID);
 
 		//Add the read class as the next handle
@@ -207,7 +207,7 @@ public class Reader {
 	 */
 	private static Class readClassDescInfo(Class returnClass) throws IOException {
 		//classDescFlags (only two are expected in classic file)
-		int classDescFlags = din.readUnsignedByte();
+		int classDescFlags = dis.readUnsignedByte();
 		if(classDescFlags != Grammar.SC_SERIALIZABLE && 
 				classDescFlags != (Grammar.SC_SERIALIZABLE | Grammar.SC_WRITE_METHOD)) {
 			throw new IllegalArgumentException("Illegal classDescFlags");
@@ -217,7 +217,7 @@ public class Reader {
 		returnClass = readFields(returnClass);
 		
 		//Ensure block data ends
-		byte endBlockData = din.readByte();
+		byte endBlockData = dis.readByte();
 		if(endBlockData != Grammar.TC_ENDBLOCKDATA) {
 			throw new IllegalArgumentException("Missing block data end byte");
 		}
@@ -234,7 +234,7 @@ public class Reader {
 	 */
 	public static Class readFields(Class inputClass) throws IOException {
 		//Read number of fields
-		short numFields = din.readShort();
+		short numFields = dis.readShort();
 		
 		//Read each field
 		for(int i = 0; i < numFields; i++) {
@@ -247,10 +247,10 @@ public class Reader {
 	
 	public static Field readFieldDesc() throws IOException {
 		//Get type of field
-		char type = (char) din.readByte();
+		char type = (char) dis.readByte();
 		
 		//Get name of field
-		String fieldName = din.readUTF();
+		String fieldName = dis.readUTF();
 		
 		//Return type of field described
 		if('B' == type) {

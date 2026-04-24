@@ -3,6 +3,7 @@ package fields;
 import java.io.IOException;
 
 import io.Reader;
+import io.Writer;
 
 /** Field for an int primitive */
 public class IntField extends Field {
@@ -19,7 +20,12 @@ public class IntField extends Field {
 	
 	@Override
 	public void read() throws IOException {
-		fieldValue = Reader.din.readInt();
+		fieldValue = Reader.dis.readInt();
+	}
+
+	@Override
+	public void write() throws IOException {
+		Writer.dos.writeInt(fieldValue);
 	}
 
 	@Override
