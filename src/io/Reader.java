@@ -106,7 +106,7 @@ public class Reader {
 			return readNewObject();
 		} else if(cDeterminer == Grammar.TC_REFERENCE) {
 			return readPrevObject();
-		} else if(cDeterminer == Grammar.TC_STRING) { 
+		} else if(cDeterminer == Grammar.TC_STRING || cDeterminer == Grammar.TC_LONGSTRING) { 
 			return readNewString();
 		} else if(cDeterminer == Grammar.TC_NULL) {
 			return null;
