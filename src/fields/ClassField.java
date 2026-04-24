@@ -3,6 +3,7 @@ package fields;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import io.Grammar;
 import io.Reader;
 
 public class ClassField extends Field {
@@ -77,7 +78,7 @@ public class ClassField extends Field {
 				return;
 			
 			int blockData = Reader.din.readUnsignedByte();
-			if(blockData != Reader.TC_BLOCKDATA) {
+			if(blockData != Grammar.TC_BLOCKDATA) {
 				for(int i = 0; i < 5; i++) {
 					System.out.println("nextbyte: " + Reader.din.readUnsignedByte());
 				}
@@ -85,7 +86,7 @@ public class ClassField extends Field {
 			}
 			
 			int externalizable = Reader.din.readUnsignedByte();
-			if(externalizable != Reader.SC_EXTERNALIZABLE) {
+			if(externalizable != Grammar.SC_EXTERNALIZABLE) {
 				throw new IllegalArgumentException("List is not externalizable.");
 			}
 			
@@ -102,7 +103,7 @@ public class ClassField extends Field {
 			}
 			
 			int endBlockData = Reader.din.readUnsignedByte();
-			if(endBlockData != Reader.TC_ENDBLOCKDATA) {
+			if(endBlockData != Grammar.TC_ENDBLOCKDATA) {
 				throw new IllegalArgumentException("Block data not properly ending. Final byte was: " + endBlockData);
 			}
 		} else if(RANDOM.equals(className)) {
@@ -110,7 +111,7 @@ public class ClassField extends Field {
 			classField = Reader.readContent();
 			
 			int endBlockData = Reader.din.readUnsignedByte();
-			if(endBlockData != Reader.TC_ENDBLOCKDATA) {
+			if(endBlockData != Grammar.TC_ENDBLOCKDATA) {
 				throw new IllegalArgumentException("Block data not properly ending");
 			}
 		} else {

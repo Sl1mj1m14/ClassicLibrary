@@ -3,6 +3,7 @@ package fields;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import io.Grammar;
 import io.Reader;
 
 public class ArrayField extends Field {
@@ -32,7 +33,7 @@ public class ArrayField extends Field {
 	public void read() throws IOException {
 		//Read the newArray from the grammar
 		int tcArray = Reader.din.readUnsignedByte();
-		if(tcArray != Reader.TC_ARRAY) {
+		if(tcArray != Grammar.TC_ARRAY) {
 			for(int i = 0; i < 10; i++) {
 				System.out.println(Reader.din.readUnsignedByte() + ",");
 			}

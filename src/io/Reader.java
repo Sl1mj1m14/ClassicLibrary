@@ -38,42 +38,10 @@ public class Reader {
 	
 	/** List of all classes that are saved with (newHandle) in
 	 * the grammar. They can be referenced later and read by
-	 * {@link #readPrevObject()}. The counting in the file
+	 * {@link Grammar#readPrevObject()}. The counting in the file
 	 * begins at {@link #baseWireHandle} and so that must be
 	 * subtracted to get the position in the list.*/
 	public static ArrayList<Class> handles;
-	
-	/**
-	 * Important constants for the grammar provided by the
-	 * documentation at:
-	 * https://docs.oracle.com/javase/6/docs/platform/serialization/spec/protocol.html
-	 */
-	public final static short STREAM_MAGIC = (short)0xaced;
-    public final static short STREAM_VERSION = 5;
-
-    public final static byte TC_NULL = 0x70;
-    public final static byte TC_REFERENCE = 0x71;
-    public final static byte TC_CLASSDESC = 0x72;
-    public final static byte TC_OBJECT = 0x73;
-    public final static byte TC_STRING = 0x74;
-    public final static byte TC_ARRAY = 0x75;
-    public final static byte TC_CLASS = 0x76;
-    public final static byte TC_BLOCKDATA = 0x77;
-    public final static byte TC_ENDBLOCKDATA = 0x78;
-    public final static byte TC_RESET = 0x79;
-    public final static byte TC_BLOCKDATALONG = 0x7A;
-    public final static byte TC_EXCEPTION = 0x7B;
-    public final static byte TC_LONGSTRING = 0x7C;
-    public final static byte TC_PROXYCLASSDESC = 0x7D;
-    public final static byte TC_ENUM = 0x7E;
-
-    public final static int baseWireHandle = 0x7E0000;
-
-    public final static byte SC_WRITE_METHOD = 0x01; //if SC_SERIALIZABLE
-    public final static byte SC_BLOCK_DATA = 0x08; //if SC_EXTERNALIZABLE
-    public final static byte SC_SERIALIZABLE = 0x02;
-    public final static byte SC_EXTERNALIZABLE = 0x04;
-    public final static byte SC_ENUM = 0x10;
 	
 	/**
 	 * Reads the file at the given path then returns the Class that was
@@ -90,13 +58,13 @@ public class Reader {
 
 		//Ensure first two bytes are magic number 0xACED
 		int magic = din.readShort();
-		if(magic != STREAM_MAGIC) {
+		if(magic != Grammar.STREAM_MAGIC) {
 			throw new IllegalArgumentException("Invalid starting magic bytes");
 		}
 		
 		//Check version number is 5
 		int version = din.readUnsignedShort();
-		if(version != STREAM_VERSION) {
+		if(version != Grammar.STREAM_VERSION) {
 			throw new IllegalArgumentException("Invalid version number");
 		}
 		
@@ -134,13 +102,13 @@ public class Reader {
 		//Content determiner dictates what type of content it is
 		int cDeterminer = din.readUnsignedByte();
 		
-		if(cDeterminer == TC_OBJECT) {
+		if(cDeterminer == Grammar.TC_OBJECT) {
 			return readNewObject();
-		} else if(cDeterminer == TC_REFERENCE) {
+		} else if(cDeterminer == Grammar.TC_REFERENCE) {
 			return readPrevObject();
-		} else if(cDeterminer == TC_STRING) { 
+		} else if(cDeterminer == Grammar.TC_STRING) { 
 			return readNewString();
-		} else if(cDeterminer == TC_NULL) {
+		} else if(cDeterminer == Grammar.TC_NULL) {
 			return null;
 		} else {
 			//There are other valid next bytes but they aren't used in classic files
@@ -170,7 +138,7 @@ public class Reader {
 	 */
 	private static Class readPrevObject() throws IOException {
 		int reference = din.readInt();
-		Class prototype = handles.get(reference - baseWireHandle);
+		Class prototype = handles.get(reference - Grammar.baseWireHandle);
 		return prototype.clone();
 	}
 	
@@ -197,11 +165,11 @@ public class Reader {
 		//newClassDescription or reference
 		int oDeterminer = din.readUnsignedByte();
 		
-		if(oDeterminer == TC_CLASSDESC) {
+		if(oDeterminer == Grammar.TC_CLASSDESC) {
 			return readNewClassDesc();
-		} else if(oDeterminer == TC_REFERENCE) {
+		} else if(oDeterminer == Grammar.TC_REFERENCE) {
 			return readPrevObject();
-		} else if(oDeterminer == TC_NULL) {
+		} else if(oDeterminer == Grammar.TC_NULL) {
 			return null;
 		} else {
 			//Not covering proxy since it shouldn't be in classic file
@@ -240,8 +208,8 @@ public class Reader {
 	private static Class readClassDescInfo(Class returnClass) throws IOException {
 		//classDescFlags (only two are expected in classic file)
 		int classDescFlags = din.readUnsignedByte();
-		if(classDescFlags != SC_SERIALIZABLE && 
-				classDescFlags != (SC_SERIALIZABLE | SC_WRITE_METHOD)) {
+		if(classDescFlags != Grammar.SC_SERIALIZABLE && 
+				classDescFlags != (Grammar.SC_SERIALIZABLE | Grammar.SC_WRITE_METHOD)) {
 			throw new IllegalArgumentException("Illegal classDescFlags");
 		}
 		
@@ -250,7 +218,7 @@ public class Reader {
 		
 		//Ensure block data ends
 		byte endBlockData = din.readByte();
-		if(endBlockData != TC_ENDBLOCKDATA) {
+		if(endBlockData != Grammar.TC_ENDBLOCKDATA) {
 			throw new IllegalArgumentException("Missing block data end byte");
 		}
 		
