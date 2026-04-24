@@ -51,10 +51,13 @@ public class Reader {
 	 * contains an error
 	 */
 	
-	private static void read(byte[] stream) throws IOException {
+	public static Class read(byte[] stream) throws IOException {
 
 		ByteArrayInputStream bin = new ByteArrayInputStream(stream);
         dis = new DataInputStream(bin);
+
+		//Initialize handles array list
+		handles = new ArrayList<Class>();
 
 		//Ensure first two bytes are magic number 0xACED
 		int magic = dis.readShort();
@@ -79,8 +82,7 @@ public class Reader {
 		//Close the streams to prevent resource leak
 		dis.close();
 		
-		System.out.println("This is a test message, assuming everything worked correctly...");
-		//return readClass;
+		return readClass;
 	}
 	
 	/**
