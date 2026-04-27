@@ -108,8 +108,10 @@ public class Reader {
 			return readNewObject();
 		} else if(cDeterminer == Grammar.TC_REFERENCE) {
 			return readPrevObject();
-		} else if(cDeterminer == Grammar.TC_STRING || cDeterminer == Grammar.TC_LONGSTRING) { 
+		} else if(cDeterminer == Grammar.TC_STRING) { 
 			return readNewString();
+		} else if (cDeterminer == Grammar.TC_LONGSTRING) {
+			throw new UnsupportedOperationException("Not implemented yet!"); //TODO
 		} else if(cDeterminer == Grammar.TC_NULL) {
 			return null;
 		} else {
