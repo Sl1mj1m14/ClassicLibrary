@@ -25,6 +25,7 @@ public class ReadWriteTest {
         testReadWrite(Simple.class);
         testReadWrite(Subclass.class);
         testReadWrite(Superclass.class);
+        testReadWrite(ClassWithArrays.class);
     }
 
     private static void testReadWrite(java.lang.Class<?> c) throws Exception {

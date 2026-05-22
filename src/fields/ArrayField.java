@@ -21,13 +21,9 @@ public class ArrayField extends Field {
 	public Object getField() {
 		return arrayDescriptor + " (Array)";
 	}
-	
-	public ArrayList<Field> getArray() {
-		return arrayContents;
-	}
-	
-	public void addField(Field f) {
-		arrayContents.add(f);
+
+	public String getArrayDescriptor() {
+		return arrayDescriptor;
 	}
 	
 	@Override
@@ -35,9 +31,6 @@ public class ArrayField extends Field {
 		//Read the newArray from the grammar
 		int tcArray = Reader.dis.readUnsignedByte();
 		if(tcArray != Grammar.TC_ARRAY) {
-			for(int i = 0; i < 10; i++) {
-				System.out.println(Reader.dis.readUnsignedByte() + ",");
-			}
 			throw new IllegalArgumentException("Invalid starter of array. Was: " + tcArray);
 		}
 		
@@ -91,7 +84,31 @@ public class ArrayField extends Field {
 	
 	@Override
 	public void write() throws IOException {
-		throw new UnsupportedOperationException("Not implemented yet!"); //TODO
+		// Write TC_ARRAY byte
+		Writer.dos.writeByte(Grammar.TC_ARRAY);
+
+		// If array is an array of classes, write the class description. Otherwise write null.
+		if(arrayContents.isEmpty()) {
+			Writer.dos.writeByte(Grammar.TC_NULL);
+		} else {
+			Field exampleField = arrayContents.get(0);
+			if (exampleField instanceof ClassField) {
+				ClassField exampleClassField = (ClassField) exampleField;
+				Writer.writeClassDesc(exampleClassField.getClassField());
+			} else {
+				Writer.dos.writeByte(Grammar.TC_NULL);
+			}
+		}
+
+		// TODO write handle
+
+		// Write size of array
+		Writer.dos.writeInt(arrayContents.size());
+
+		// Write contents of every field
+		for(int i = 0; i < arrayContents.size(); i++) {
+			arrayContents.get(i).write();
+		}
 	}
 
 	@Override

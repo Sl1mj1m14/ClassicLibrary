@@ -5,10 +5,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import fields.ArrayField;
 import fields.BooleanField;
 import fields.ByteField;
 import fields.CharField;
 import fields.Class;
+import fields.ClassField;
 import fields.DoubleField;
 import fields.Field;
 import fields.FloatField;
@@ -84,7 +86,7 @@ public class Writer {
     }
 
     //TODO: Javadoc
-    private static void writeClassDesc(Class writeClass) throws IOException {
+    public static void writeClassDesc(Class writeClass) throws IOException {
         //TODO: only handling newClassDesc and null case currently, add prevObject case
         if(writeClass != null) {
             writeNewClassDesc(writeClass);
@@ -146,7 +148,15 @@ public class Writer {
             dos.writeByte('S');
         } else if(f instanceof BooleanField) {
             dos.writeByte('Z');
-        } //TODO Array Field and Class Field
+        } else if(f instanceof ArrayField) {
+            String arrayDescriptor = ((ArrayField) f).getArrayDescriptor();
+            // TODO write an string class with the array descriptor as its value (need to implement write string class first)
+            // writeObject(arrayDescriptorStringClass);
+
+            dos.writeByte('[');
+        } else if(f instanceof ClassField) {
+            //TODO
+        }
 
         // fieldName
         dos.writeUTF(f.getFieldName());
